@@ -21,10 +21,18 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Build APK with Gradle
-      run: gradle assembleDebug
+      run: |
+        if [ -d "app" ]; then
+          gradle assembleDebug
+        else
+          SUBDIR=$(find . -maxdepth 2 -type d -name "app" | head -n 1 | cut -d'/' -f2)
+          echo "Found project in subfolder: $SUBDIR"
+          cd "$SUBDIR"
+          gradle assembleDebug
+        fi
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Calculator-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: "**/build/outputs/apk/debug/app-debug.apk"
