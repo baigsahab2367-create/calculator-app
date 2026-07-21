@@ -17,17 +17,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
 
-    - name: Build APK with Gradle
+    - name: Build with Gradle Wrapper / Gradle
       run: |
-        if [ -d "app" ]; then
-          gradle assembleDebug
+        # Find root directory containing gradle file
+        PROJ_DIR=$(dirname $(find . -name "build.gradle" -o -name "build.gradle.kts" | head -n 1))
+        cd "$PROJ_DIR"
+        echo "Working directory: $(pwd)"
+        
+        if [ -f "./gradlew" ]; then
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
         else
-          SUBDIR=$(find . -maxdepth 2 -type d -name "app" | head -n 1 | cut -d'/' -f2)
-          echo "Found project in subfolder: $SUBDIR"
-          cd "$SUBDIR"
           gradle assembleDebug
         fi
 
@@ -35,4 +38,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Calculator-APK
-        path: "**/build/outputs/apk/debug/app-debug.apk"
+        path: "**/build/outputs/apk/debug/*.apk"
